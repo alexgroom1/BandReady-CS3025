@@ -7,6 +7,10 @@ const STAFF_X1 = 250;
 const STAFF_X2 = 720;
 const TREBLE_CLEF_X = 168;
 const TREBLE_CLEF_Y = 154;
+/** X position for line (L) bubbles on the staff. */
+const STAFF_BUBBLE_X = 278;
+/** X position for space (S) bubbles, to the right of line bubbles so they don't overlap. */
+const STAFF_SPACE_BUBBLE_X = 332;
 
 function renderRhythmSymbol(symbol: string, index: number) {
   if (symbol === 'quarter') {
@@ -167,22 +171,44 @@ function renderNamedStaffNote({
   );
 }
 
+const NOTE_HEAD_X = 480;
+
+function renderStaffNoteHead({ y, color = '#5F7086' }: { y: number; color?: string }) {
+  return (
+    <g key={y}>
+      <ellipse
+        cx={NOTE_HEAD_X}
+        cy={y}
+        rx="14"
+        ry="10"
+        fill={color}
+        transform={`rotate(-18 ${NOTE_HEAD_X} ${y})`}
+      />
+      <rect x={NOTE_HEAD_X + 12} y={y - 42} width="4" height="48" rx="2" fill={color} />
+    </g>
+  );
+}
+
 export function ModuleVisual({ visual, large = false }: { visual: QuestionVisual; large?: boolean }) {
   if (visual.kind === 'staff-numbering') {
     const lineKeys = ['line5', 'line4', 'line3', 'line2', 'line1'] as const;
     const spaceKeys = ['space4', 'space3', 'space2', 'space1'] as const;
     const emphasizeData = visual.emphasize ? STAFF_POSITION_DATA[visual.emphasize] : null;
     const accentColor = getPositionAccent(visual.emphasize);
+    const allPositions = [...lineKeys, ...spaceKeys].sort((a, b) => STAFF_POSITION_DATA[a].y - STAFF_POSITION_DATA[b].y);
 
     return (
       <StaffShell large={large}>
+        {visual.showNoteNames
+          ? allPositions.map((pos) => renderStaffNoteHead({ y: STAFF_POSITION_DATA[pos].y }))
+          : null}
         {lineKeys.map((lineKey) => {
           const line = STAFF_POSITION_DATA[lineKey];
           const active = visual.emphasize === lineKey;
           return (
             <g key={lineKey}>
               {renderPillLabel({
-                x: 64,
+                x: STAFF_BUBBLE_X,
                 y: line.y,
                 label: getCompactLabel(lineKey),
                 fill: active ? '#4A90D9' : '#6E7F96',
@@ -213,7 +239,7 @@ export function ModuleVisual({ visual, large = false }: { visual: QuestionVisual
           return (
             <g key={spaceKey}>
               {renderPillLabel({
-                x: 124,
+                x: STAFF_SPACE_BUBBLE_X,
                 y: space.y,
                 label: getCompactLabel(spaceKey),
                 fill: active ? '#52C98A' : '#9AA7B8',
@@ -249,35 +275,104 @@ export function ModuleVisual({ visual, large = false }: { visual: QuestionVisual
               fill={accentColor}
               opacity="0.14"
             />
-            <circle cx={STAFF_X1 - 30} cy={emphasizeData.y} r="7" fill={accentColor} />
-            <rect x="214" y="238" width="392" height="34" rx="17" fill="#EEF4FA" />
-            <text
-              x="410"
-              y="259"
-              fontSize="16"
-              fill="#4C6178"
-              fontFamily="Nunito"
-              fontWeight="800"
-              textAnchor="middle"
-            >
-              {`${getCompactLabel(visual.emphasize)} = ${emphasizeData.label}`}
-            </text>
+            <circle
+              cx={(visual.emphasize?.startsWith('space') ? STAFF_SPACE_BUBBLE_X : STAFF_BUBBLE_X) - 22}
+              cy={emphasizeData.y}
+              r="7"
+              fill={accentColor}
+            />
           </>
-        ) : (
-          <rect x="214" y="238" width="392" height="34" rx="17" fill="#EEF4FA" />
-        )}
+        ) : null}
 
+        <rect x="214" y="238" width="392" height="34" rx="17" fill="#EEF4FA" />
         <text
           x="410"
           y="259"
-          fontSize="15"
-          fill="#5F7086"
+          fontSize={emphasizeData ? 14 : 15}
+          fill="#4C6178"
           fontFamily="Nunito"
           fontWeight="800"
           textAnchor="middle"
         >
-          L = line, S = space. Count both from the bottom up.
+          {emphasizeData
+            ? `${getCompactLabel(visual.emphasize)} = ${emphasizeData.label}. L = line, S = space. Count from the bottom up.`
+            : 'L = line, S = space. Count lines and spaces from the bottom up.'}
         </text>
+      </StaffShell>
+    );
+  }
+
+  if (visual.kind === 'staff-treble-names') {
+    const lineKeys = ['line1', 'line2', 'line3', 'line4', 'line5'] as const;
+    const spaceKeys = ['space1', 'space2', 'space3', 'space4'] as const;
+    const lineXStart = 295;
+    const lineXStep = 72;
+    const spaceXStart = 328;
+    const spaceXStep = 72;
+    const noteFontSize = 16;
+    const bubbleWidth = 28;
+    const bubbleHeight = 20;
+    const noteFontWeight = 400;
+    const lineBubbleFill = '#4A90D9';
+    const spaceBubbleFill = '#F5A623';
+    return (
+      <StaffShell large={large}>
+        {lineKeys.map((key, i) => {
+          const { y, note } = STAFF_POSITION_DATA[key];
+          const x = lineXStart + i * lineXStep;
+          return (
+            <g key={key}>
+              <rect
+                x={x - bubbleWidth / 2}
+                y={y - bubbleHeight / 2}
+                width={bubbleWidth}
+                height={bubbleHeight}
+                rx={bubbleHeight / 2}
+                fill={lineBubbleFill}
+              />
+              <text
+                x={x}
+                y={y}
+                fill="white"
+                fontSize={noteFontSize}
+                fontFamily="Nunito"
+                fontWeight={noteFontWeight}
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {note}
+              </text>
+            </g>
+          );
+        })}
+        {spaceKeys.map((key, i) => {
+          const { y, note } = STAFF_POSITION_DATA[key];
+          const x = spaceXStart + i * spaceXStep;
+          return (
+            <g key={key}>
+              <rect
+                x={x - bubbleWidth / 2}
+                y={y - bubbleHeight / 2}
+                width={bubbleWidth}
+                height={bubbleHeight}
+                rx={bubbleHeight / 2}
+                fill={spaceBubbleFill}
+              />
+              <text
+                x={x}
+                y={y}
+                fill="white"
+                fontSize={noteFontSize}
+                fontFamily="Nunito"
+                fontWeight={noteFontWeight}
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {note}
+              </text>
+            </g>
+          );
+        })}
       </StaffShell>
     );
   }

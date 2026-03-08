@@ -124,6 +124,12 @@ export async function playVisualAudio(visual: QuestionVisual) {
       visual.items.map((item) => getStaffNoteFrequency(item.position)),
     );
   }
+  if (visual.kind === 'staff-treble-names') {
+    const sequence = ['line1', 'space1', 'line2', 'space2', 'line3', 'space3', 'line4', 'space4', 'line5'].map(
+      (position) => getStaffNoteFrequency(position as StaffPosition),
+    );
+    return playNoteSequence(sequence);
+  }
   if (visual.kind === 'rhythm-pattern') {
     return playRhythmPattern(visual.patternId);
   }
