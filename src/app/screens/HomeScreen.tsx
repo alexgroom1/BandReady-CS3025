@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import { Award, Book, Drum, LogOut, Music, Trophy, Users } from 'lucide-react';
 import { MODULES } from '../data/modules';
-import { getModuleCompletionPercent, getNextModuleRoute } from '../lib/moduleProgress';
+import { getModuleCompletionPercent } from '../lib/moduleProgress';
 import { useAppState } from '../state/AppState';
 
 export function HomeScreen() {
@@ -106,7 +106,7 @@ export function HomeScreen() {
           const progress = getModuleProgress(module.id);
           const percent = getModuleCompletionPercent(module, progress);
           const Icon = iconMap[module.icon];
-          const ctaLabel = progress.completedAt ? 'Review Results' : percent > 0 ? 'Continue' : 'Start Module';
+          const ctaLabel = progress.completedAt ? 'Open Module' : percent > 0 ? 'Continue Module' : 'Start Module';
 
           return (
             <div
@@ -134,7 +134,7 @@ export function HomeScreen() {
                 <div style={{ width: `${percent}%`, height: '100%', background: module.accentColor }} />
               </div>
               <button
-                onClick={() => navigate(getNextModuleRoute(module, progress))}
+                onClick={() => navigate(`/module/${module.id}`)}
                 style={{
                   width: '100%',
                   height: '46px',

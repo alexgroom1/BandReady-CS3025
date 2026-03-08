@@ -364,7 +364,9 @@ export function AppStateProvider({ children }: PropsWithChildren) {
 
       const learnerProgress = currentState.progressByLearner[learnerId] ?? createEmptyLearnerProgress();
       const moduleProgress = learnerProgress.modules[moduleId] ?? createEmptyModuleProgress();
-      const activeAttempt = moduleProgress.currentAssessment ?? {
+      const activeAttempt = moduleProgress.currentAssessment && !moduleProgress.currentAssessment.finishedAt
+        ? moduleProgress.currentAssessment
+        : {
         startedAt: Date.now(),
         answers: {},
         score: 0,
@@ -462,7 +464,23 @@ export function AppStateProvider({ children }: PropsWithChildren) {
         };
       }
 
-      await persist(attemptForPersistence);
+      const persistedModuleProgress = await persist(attemptForPersistence);
+      setState((currentState) => {
+        const learnerProgress = currentState.progressByLearner[learnerId!] ?? createEmptyLearnerProgress();
+        return {
+          ...currentState,
+          progressByLearner: {
+            ...currentState.progressByLearner,
+            [learnerId!]: {
+              ...learnerProgress,
+              modules: {
+                ...learnerProgress.modules,
+                [moduleId]: persistedModuleProgress,
+              },
+            },
+          },
+        };
+      });
     })().catch((error) => {
       console.error(`Failed to persist assessment answer for ${moduleId}`, error);
     });
