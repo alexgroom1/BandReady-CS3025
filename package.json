@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "backend:dev": "python3 -m backend.app",
-    "backend:init": "python3 -m backend.init_db",
+    "backend:dev": "node scripts/run-with-venv.js backend.app",
+    "backend:init": "node scripts/run-with-venv.js backend.init_db",
     "build": "vite build",
     "dev": "vite",
     "frontend:dev": "vite"

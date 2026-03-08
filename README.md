@@ -4,31 +4,41 @@ Band Ready is a tablet-first music learning prototype for grade 4-5 students. Th
 
 ## Quick start
 
-Open two terminals in the project root.
+Open two terminals in the project root. The backend uses a **project virtualenv** at `venv/`; you do not need to activate it—`npm run backend:dev` and `npm run backend:init` use it automatically.
 
-### 1. Install dependencies
+### 1. Install dependencies (venv + backend deps + frontend)
 
-Frontend:
+**Recommended (all-in-one):**
 
 ```bash
-npm install
+make install
 ```
 
-Backend:
+This creates the virtualenv at `venv/`, installs backend requirements, and runs `npm install`.
+
+**Manual:** create the venv, install backend deps, then frontend:
 
 ```bash
-python3 -m pip install -r backend/requirements.txt
+# Windows (PowerShell or cmd)
+python -m venv venv
+venv\Scripts\pip install -r backend/requirements.txt
+npm install
+
+# macOS / Linux
+python3 -m venv venv
+venv/bin/pip install -r backend/requirements.txt
+npm install
 ```
 
 ### 2. Initialize the database
 
-Run this once before first launch, or anytime you want to recreate the local SQLite data file:
+Run once before first launch, or anytime you want to recreate the local SQLite file:
 
 ```bash
 npm run backend:init
 ```
 
-This creates and seeds `backend/instance/bandready.db`.
+This creates and seeds `backend/instance/bandready.db` using the project venv.
 
 ### 3. Start the backend
 
@@ -38,7 +48,7 @@ In terminal 1:
 npm run backend:dev
 ```
 
-The Flask API runs at `http://127.0.0.1:5000`.
+The Flask API runs at `http://127.0.0.1:5000`. No need to activate the venv first.
 
 ### 4. Start the frontend
 
@@ -78,10 +88,10 @@ npm run frontend:dev
 
 ## Backend setup
 
-If you only need the backend commands:
+If you only need the backend commands, use the project venv (no activation needed):
 
 ```bash
-python3 -m pip install -r backend/requirements.txt
+make install   # or: make venv && venv\Scripts\pip install -r backend/requirements.txt (Windows) / venv/bin/pip ... (macOS/Linux)
 npm run backend:init
 npm run backend:dev
 ```

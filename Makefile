@@ -3,16 +3,27 @@
 
 # OS detection: Windows_NT is set on Windows
 ifeq ($(OS),Windows_NT)
+    DETECTED_OS := Windows
     PYTHON ?= python
-    VENV_PYTHON := backend/venv/Scripts/python.exe
-    VENV_PIP := backend/venv/Scripts/pip.exe
+    VENV_ACTIVATE := venv\Scripts\activate
+    VENV_PYTHON := venv\Scripts\python
+    VENV_PIP := venv\Scripts\pip
+    PATH_SEP := \\
+    MKDIR := mkdir
+    RM := rmdir /s /q
+    VENV_DIR := venv
 else
+    DETECTED_OS := Linux
     PYTHON ?= python3
-    VENV_PYTHON := backend/venv/bin/python
-    VENV_PIP := backend/venv/bin/pip
+    VENV_ACTIVATE := venv/bin/activate
+    VENV_PYTHON := venv/bin/python
+    VENV_PIP := venv/bin/pip
+    PATH_SEP := /
+    MKDIR := mkdir -p
+    RM := rm -rf
+    VENV_DIR := venv
 endif
 
-VENV_DIR := backend/venv
 REQUIREMENTS := backend/requirements.txt
 
 # Use a single shell for all recipes (Git Bash on Windows, /bin/sh on macOS/Linux)
@@ -25,21 +36,30 @@ install: venv
 	$(VENV_PIP) install -r $(REQUIREMENTS)
 	npm install
 
-# Ensure venv exists (create if not) — uses Make's wildcard so no shell-specific test
+# Ensure venv exists (create if not). Use forward slashes for wildcard (works on Windows too).
 venv:
-ifeq ($(wildcard $(VENV_PYTHON)),)
+ifeq ($(OS),Windows_NT)
+ifeq ($(wildcard $(VENV_DIR)/Scripts/python.exe),)
 	$(PYTHON) -m venv $(VENV_DIR)
 	@echo "Created virtualenv at $(VENV_DIR)"
 else
 	@echo "Virtualenv already exists at $(VENV_DIR)"
 endif
+else
+ifeq ($(wildcard $(VENV_DIR)/bin/python),)
+	$(PYTHON) -m venv $(VENV_DIR)
+	@echo "Created virtualenv at $(VENV_DIR)"
+else
+	@echo "Virtualenv already exists at $(VENV_DIR)"
+endif
+endif
 
-# Run backend and frontend (backend in background, frontend in foreground)
+# Run frontend and backend (frontend in background, backend in foreground)
 run: venv
-	@echo "Starting backend..."
-	@$(VENV_PYTHON) -m backend.app & \
-	echo "Starting frontend..." && \
-	npm run dev
+	@echo "Starting frontend..."
+	@npm run dev & \
+	echo "Starting backend..." && \
+	$(VENV_PYTHON) -m backend.app
 
 # Run only the backend (uses venv)
 run-backend: venv
@@ -51,4 +71,4 @@ run-frontend:
 
 # Remove virtualenv (optional)
 clean:
-	rm -rf $(VENV_DIR)
+	$(RM) $(VENV_DIR)
