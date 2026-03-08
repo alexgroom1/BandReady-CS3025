@@ -63,8 +63,8 @@ export function TeacherLoginScreen() {
         ) : null}
 
         <button
-          onClick={() => {
-            if (authenticateTeacher(pin)) {
+          onClick={async () => {
+            if (await authenticateTeacher(pin)) {
               navigate('/teacher');
               return;
             }
