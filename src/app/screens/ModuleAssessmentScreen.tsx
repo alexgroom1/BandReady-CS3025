@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { ModuleVisual } from '../components/ModuleVisual';
 import { playVisualAudio } from '../lib/audio';
-import { getAssessmentBackRoute, getModuleById, getSafeModuleRoute } from '../lib/moduleProgress';
+import { getAssessmentBackRoute, getModuleById, getSafeModuleRoute, isPracticeComplete } from '../lib/moduleProgress';
 import { useAppState } from '../state/AppState';
 
 export function ModuleAssessmentScreen() {
@@ -11,27 +11,38 @@ export function ModuleAssessmentScreen() {
   const { moduleId, questionId } = useParams();
   const { getModuleProgress, startAssessment, submitAssessmentAnswer, markRouteVisited, recordNavigationError } = useAppState();
   const module = getModuleById(moduleId);
+  const progress = module ? getModuleProgress(module.id) : null;
+  const practiceComplete = module && progress ? isPracticeComplete(module, progress) : false;
 
   useEffect(() => {
-    if (module) {
+    if (module && practiceComplete) {
       startAssessment(module.id);
     }
-  }, [module, startAssessment]);
+  }, [module, practiceComplete, startAssessment]);
 
   if (!module) {
     return <Navigate to="/home" replace />;
   }
 
-  const progress = getModuleProgress(module.id);
+  if (!progress) {
+    return <Navigate to="/home" replace />;
+  }
   const questionIndex = module.assessmentQuestions.findIndex((question) => question.id === questionId);
   const question = module.assessmentQuestions[questionIndex];
+
+  if (!practiceComplete) {
+    recordNavigationError(module.id);
+    return <Navigate to={`/module/${module.id}`} replace />;
+  }
 
   if (!question) {
     recordNavigationError(module.id);
     return <Navigate to={getSafeModuleRoute(module)} replace />;
   }
 
-  const answeredCount = Object.keys(progress.currentAssessment?.answers ?? {}).length;
+  const answeredCount = progress.currentAssessment && !progress.currentAssessment.finishedAt
+    ? Object.keys(progress.currentAssessment.answers).length
+    : 0;
 
   useEffect(() => {
     markRouteVisited(module.id, `/module/${module.id}/assessment/${question.id}`);
