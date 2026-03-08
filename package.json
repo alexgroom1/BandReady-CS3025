@@ -4,8 +4,11 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "backend:dev": "python3 -m backend.app",
+    "backend:init": "python3 -m backend.init_db",
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "frontend:dev": "vite"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

@@ -1,11 +1,22 @@
 import { GraduationCap, LogOut } from 'lucide-react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAppState } from '../state/AppState';
 
 export function TeacherDashboardScreen() {
   const navigate = useNavigate();
-  const { getTeacherDashboardView, clearTeacherAuth, logout } = useAppState();
+  const {
+    getTeacherDashboardView,
+    clearTeacherAuth,
+    logout,
+    refreshTeacherDashboard,
+    teacherDashboardLoading,
+  } = useAppState();
   const dashboard = getTeacherDashboardView();
+
+  useEffect(() => {
+    void refreshTeacherDashboard();
+  }, [refreshTeacherDashboard]);
 
   return (
     <div className="min-h-screen" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
@@ -63,6 +74,11 @@ export function TeacherDashboardScreen() {
       </div>
 
       <div className="grid gap-6">
+        {teacherDashboardLoading ? (
+          <div className="rounded-[28px] bg-white p-6 shadow-[0_4px_16px_rgba(0,0,0,0.08)]" style={{ fontWeight: 700, fontSize: '18px', color: '#6B7A8D' }}>
+            Loading dashboard...
+          </div>
+        ) : null}
         {dashboard.learners.map((entry) => (
           <div
             key={entry.learner.id}
