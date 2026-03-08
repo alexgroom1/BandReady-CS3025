@@ -1,13 +1,18 @@
 import { useNavigate } from 'react-router';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { useState } from 'react';
-import { LEARNER_PROFILES } from '../data/modules';
+import { useEffect, useState } from 'react';
 import { useAppState } from '../state/AppState';
 
 export function ProfileSelectScreen() {
   const navigate = useNavigate();
-  const { selectLearner, selectedLearner } = useAppState();
-  const [selectedProfile, setSelectedProfile] = useState(selectedLearner?.id ?? LEARNER_PROFILES[0].id);
+  const { selectLearner, selectedLearner, learners, learnersLoading } = useAppState();
+  const [selectedProfile, setSelectedProfile] = useState(selectedLearner?.id ?? '');
+
+  useEffect(() => {
+    if (!selectedProfile && learners.length > 0) {
+      setSelectedProfile(selectedLearner?.id ?? learners[0].id);
+    }
+  }, [learners, selectedLearner?.id, selectedProfile]);
 
   return (
     <div className="w-[1024px] h-[768px] relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
@@ -42,7 +47,11 @@ export function ProfileSelectScreen() {
         className="mx-auto mt-12 flex max-h-[430px] w-[440px] flex-col items-center gap-4 overflow-y-scroll pr-2"
         style={{ scrollbarWidth: 'auto' }}
       >
-        {LEARNER_PROFILES.map((profile) => {
+        {learnersLoading ? (
+          <div style={{ fontWeight: 700, fontSize: '18px', color: '#6B7A8D', marginTop: '48px' }}>
+            Loading learners...
+          </div>
+        ) : learners.map((profile) => {
           const isSelected = selectedProfile === profile.id;
           return (
             <button
@@ -102,6 +111,9 @@ export function ProfileSelectScreen() {
       <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
         <button
           onClick={() => {
+            if (!selectedProfile) {
+              return;
+            }
             selectLearner(selectedProfile);
             navigate('/home');
           }}
@@ -119,7 +131,7 @@ export function ProfileSelectScreen() {
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(245, 166, 35, 0.4)'
           }}
-        >
+          >
           Let's Go
           <ChevronRight size={24} />
         </button>

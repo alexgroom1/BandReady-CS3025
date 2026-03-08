@@ -113,6 +113,7 @@ export interface LearnerProfile {
 }
 
 export interface AssessmentAttempt {
+  id?: number;
   startedAt: number;
   finishedAt?: number;
   answers: Record<string, string>;
