@@ -1,19 +1,13 @@
-import { useNavigate } from "react-router";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
-import { useState } from "react";
-
-const profiles = [
-  { initial: 'E', name: 'Emma', color: '#4A90D9' },
-  { initial: 'M', name: 'Marcus', color: '#52C98A' },
-  { initial: 'S', name: 'Sofia', color: '#F5A623' },
-  { initial: 'J', name: 'James', color: '#9B59B6' },
-  { initial: 'A', name: 'Aisha', color: '#E8524A' },
-  { initial: 'N', name: 'Noah', color: '#F39C12' },
-];
+import { useNavigate } from 'react-router';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { useState } from 'react';
+import { LEARNER_PROFILES } from '../data/modules';
+import { useAppState } from '../state/AppState';
 
 export function ProfileSelectScreen() {
   const navigate = useNavigate();
-  const [selectedProfile, setSelectedProfile] = useState('Emma');
+  const { selectLearner, selectedLearner } = useAppState();
+  const [selectedProfile, setSelectedProfile] = useState(selectedLearner?.id ?? LEARNER_PROFILES[0].id);
 
   return (
     <div className="w-[1024px] h-[768px] relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
@@ -44,13 +38,16 @@ export function ProfileSelectScreen() {
       </h1>
 
       {/* Profile list */}
-      <div className="flex flex-col items-center gap-4 mt-16">
-        {profiles.map((profile) => {
-          const isSelected = selectedProfile === profile.name;
+      <div
+        className="mx-auto mt-12 flex max-h-[430px] w-[440px] flex-col items-center gap-4 overflow-y-scroll pr-2"
+        style={{ scrollbarWidth: 'auto' }}
+      >
+        {LEARNER_PROFILES.map((profile) => {
+          const isSelected = selectedProfile === profile.id;
           return (
             <button
-              key={profile.name}
-              onClick={() => setSelectedProfile(profile.name)}
+              key={profile.id}
+              onClick={() => setSelectedProfile(profile.id)}
               className="flex items-center justify-between"
               style={{
                 width: '400px',
@@ -104,7 +101,10 @@ export function ProfileSelectScreen() {
       {/* Let's Go Button */}
       <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
         <button
-          onClick={() => navigate('/home')}
+          onClick={() => {
+            selectLearner(selectedProfile);
+            navigate('/home');
+          }}
           className="flex items-center justify-center gap-2"
           style={{
             width: '280px',

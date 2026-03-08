@@ -1,11 +1,29 @@
-import { useNavigate } from "react-router";
-import { Play } from "lucide-react";
+import { useNavigate } from 'react-router';
+import { Play } from 'lucide-react';
 
 export function LaunchScreen() {
   const navigate = useNavigate();
 
   return (
-    <div className="w-[1024px] h-[768px] flex flex-col items-center justify-center" style={{ background: '#F0F4F8' }}>
+    <div className="w-[1024px] h-[768px] relative flex flex-col items-center justify-center" style={{ background: '#F0F4F8' }}>
+      <button
+        onClick={() => navigate('/teacher-login')}
+        style={{
+          position: 'absolute',
+          top: '28px',
+          right: '32px',
+          height: '44px',
+          padding: '0 18px',
+          borderRadius: '22px',
+          border: '2px solid #4A90D9',
+          background: '#FFFFFF',
+          color: '#4A90D9',
+          fontWeight: 700,
+          cursor: 'pointer',
+        }}
+      >
+        Teacher Access
+      </button>
       {/* Mascot */}
       <div className="mb-8">
         <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
