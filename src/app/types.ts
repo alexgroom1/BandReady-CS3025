@@ -29,6 +29,9 @@ export type QuestionVisual =
       showNoteNames?: boolean;
     }
   | {
+      kind: 'staff-treble-names';
+    }
+  | {
       kind: 'staff-sequence';
       items: Array<{
         position: StaffPosition;
