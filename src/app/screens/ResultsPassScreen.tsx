@@ -5,7 +5,7 @@ export function ResultsPassScreen() {
   const navigate = useNavigate();
 
   return (
-    <div className="w-[1024px] h-[768px] flex flex-col items-center justify-center" style={{ background: '#F0F4F8' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: '#F0F4F8' }}>
       {/* Trophy icon with glow */}
       <div className="mb-6" style={{
         width: '140px',

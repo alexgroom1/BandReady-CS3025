@@ -1,5 +1,5 @@
-import { ChevronLeft, Volume2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { Check, ChevronLeft, Volume2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { ModuleVisual } from '../components/ModuleVisual';
 import { playVisualAudio } from '../lib/audio';
@@ -32,6 +32,11 @@ export function ModuleAssessmentScreen() {
   }
 
   const answeredCount = Object.keys(progress.currentAssessment?.answers ?? {}).length;
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedOptionId(null);
+  }, [question.id]);
 
   useEffect(() => {
     markRouteVisited(module.id, `/module/${module.id}/assessment/${question.id}`);
@@ -89,41 +94,122 @@ export function ModuleAssessmentScreen() {
 
       <div className="mt-8 flex justify-center">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '456px' }}>
-          {question.options.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => {
-                const isLastQuestion = questionIndex === module.assessmentQuestions.length - 1;
-                submitAssessmentAnswer(
-                  module.id,
-                  question.id,
-                  option.id,
-                  option.id === question.correctOptionId,
-                  isLastQuestion,
-                );
-                navigate(
-                  isLastQuestion
-                    ? `/module/${module.id}/results`
-                    : `/module/${module.id}/assessment/${module.assessmentQuestions[questionIndex + 1].id}`,
-                );
-              }}
-              style={{
-                width: '220px',
-                height: '100px',
-                background: '#FFFFFF',
-                border: '1.5px solid #E2E8F0',
-                borderRadius: '16px',
-                fontWeight: 800,
-                fontSize: '24px',
-                color: '#3D4A5C',
-                cursor: 'pointer',
-              }}
-            >
-              {option.label}
-            </button>
-          ))}
+          {question.options.map((option) => {
+            const isCorrect = option.id === question.correctOptionId;
+            const isSelected = option.id === selectedOptionId;
+            const isWrongSelection = selectedOptionId !== null && isSelected && !isCorrect;
+
+            let background = '#FFFFFF';
+            let border = '1.5px solid #E2E8F0';
+            let color = selectedOptionId ? '#B0BEC5' : '#3D4A5C';
+
+            if (selectedOptionId) {
+              if (isCorrect) {
+                background = '#E8F8F0';
+                border = '2px solid #52C98A';
+                color = '#52C98A';
+              } else if (isWrongSelection) {
+                background = '#FEF0F0';
+                border = '2px solid #E8524A';
+                color = '#E8524A';
+              }
+            }
+
+            return (
+              <button
+                key={option.id}
+                onClick={() => {
+                  if (selectedOptionId) return;
+                  const isLastQuestion = questionIndex === module.assessmentQuestions.length - 1;
+                  setSelectedOptionId(option.id);
+                  submitAssessmentAnswer(
+                    module.id,
+                    question.id,
+                    option.id,
+                    option.id === question.correctOptionId,
+                    isLastQuestion,
+                  );
+                }}
+                style={{
+                  width: '220px',
+                  height: '100px',
+                  background,
+                  border,
+                  borderRadius: '16px',
+                  fontWeight: 800,
+                  fontSize: '24px',
+                  color,
+                  cursor: selectedOptionId ? 'default' : 'pointer',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {option.label}
+                {selectedOptionId && isCorrect && (
+                  <div style={{
+                    position: 'absolute',
+                    right: '14px',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: '#52C98A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Check size={16} color="white" strokeWidth={3} />
+                  </div>
+                )}
+                {isWrongSelection && (
+                  <div style={{
+                    position: 'absolute',
+                    right: '14px',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: '#E8524A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <X size={16} color="white" strokeWidth={3} />
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {selectedOptionId && (() => {
+        const isLastQuestion = questionIndex === module.assessmentQuestions.length - 1;
+        const nextRoute = isLastQuestion
+          ? `/module/${module.id}/results`
+          : `/module/${module.id}/assessment/${module.assessmentQuestions[questionIndex + 1].id}`;
+        return (
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() => navigate(nextRoute)}
+              style={{
+                width: '200px',
+                height: '60px',
+                background: '#F5A623',
+                color: 'white',
+                fontWeight: 700,
+                fontSize: '20px',
+                borderRadius: '30px',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(245, 166, 35, 0.4)',
+              }}
+            >
+              Next →
+            </button>
+          </div>
+        );
+      })()}
     </div>
   );
 }

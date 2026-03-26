@@ -3,13 +3,13 @@ import React, { useEffect } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { ModuleVisual } from '../components/ModuleVisual';
 import { playVisualAudio } from '../lib/audio';
-import { getModuleById, getPassThresholdLabel } from '../lib/moduleProgress';
+import { getModuleById, getNextModuleRoute, getPassThresholdLabel } from '../lib/moduleProgress';
 import { useAppState } from '../state/AppState';
 
 export function ModuleIntroScreen() {
   const navigate = useNavigate();
   const { moduleId } = useParams();
-  const { markRouteVisited } = useAppState();
+  const { markRouteVisited, selectedLearnerId, progressByLearner } = useAppState();
   const module = getModuleById(moduleId);
 
   if (!module) {
@@ -19,6 +19,18 @@ export function ModuleIntroScreen() {
   useEffect(() => {
     markRouteVisited(module.id, `/module/${module.id}`);
   }, [markRouteVisited, module.id]);
+
+  const moduleProgress = selectedLearnerId ? progressByLearner[selectedLearnerId]?.modules[module.id] : undefined;
+  const hasStarted = !!moduleProgress && (
+    moduleProgress.viewedLessonIds.length > 0 ||
+    moduleProgress.completedPracticeIds.length > 0 ||
+    moduleProgress.assessmentHistory.length > 0 ||
+    !!moduleProgress.currentAssessment
+  );
+  const startRoute = hasStarted && moduleProgress
+    ? getNextModuleRoute(module, moduleProgress)
+    : `/module/${module.id}/lesson/${module.lessons[0].id}`;
+  const buttonLabel = hasStarted ? 'CONTINUE MODULE' : 'BEGIN MODULE';
 
   return (
     <div className="min-h-screen relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
@@ -121,7 +133,7 @@ export function ModuleIntroScreen() {
       {/* BEGIN MODULE button */}
       <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
         <button
-          onClick={() => navigate(`/module/${module.id}/lesson/${module.lessons[0].id}`)}
+          onClick={() => navigate(startRoute)}
           style={{
             width: '280px',
             height: '80px',
@@ -136,7 +148,7 @@ export function ModuleIntroScreen() {
             boxShadow: '0 4px 12px rgba(245, 166, 35, 0.4)'
           }}
         >
-          BEGIN MODULE
+          {buttonLabel}
         </button>
       </div>
     </div>

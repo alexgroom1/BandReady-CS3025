@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { AssessmentQuestion } from "../../components/AssessmentQuestion";
 
 export function AssessmentQ6() {
   const navigate = useNavigate();
+  const [answered, setAnswered] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
   return (
     <AssessmentQuestion
@@ -12,7 +15,11 @@ export function AssessmentQ6() {
       notePosition="space2"
       noteColor="#4A90D9"
       options={['C', 'E', 'A', 'D']}
-      onAnswer={() => navigate('/assessment/q7')}
+      correctAnswer="A"
+      answered={answered}
+      selectedAnswer={selectedAnswer}
+      onAnswer={(answer) => { setSelectedAnswer(answer); setAnswered(true); }}
+      onNext={() => navigate('/assessment/q7')}
     />
   );
 }

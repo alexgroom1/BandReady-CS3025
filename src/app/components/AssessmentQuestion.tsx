@@ -1,4 +1,4 @@
-import { Volume2 } from "lucide-react";
+import { Check, Volume2, X } from "lucide-react";
 
 interface AssessmentQuestionProps {
   questionNumber: number;
@@ -7,7 +7,11 @@ interface AssessmentQuestionProps {
   notePosition: 'line1' | 'line2' | 'line3' | 'line4' | 'line5' | 'space1' | 'space2' | 'space3' | 'space4';
   noteColor: string;
   options: [string, string, string, string];
-  onAnswer: () => void;
+  correctAnswer: string;
+  answered: boolean;
+  selectedAnswer: string | null;
+  onAnswer: (answer: string) => void;
+  onNext: () => void;
 }
 
 const NOTE_POSITIONS = {
@@ -29,13 +33,17 @@ export function AssessmentQuestion({
   notePosition,
   noteColor,
   options,
-  onAnswer
+  correctAnswer,
+  answered,
+  selectedAnswer,
+  onAnswer,
+  onNext,
 }: AssessmentQuestionProps) {
   const noteY = NOTE_POSITIONS[notePosition];
   const completedSegments = questionNumber - 1;
 
   return (
-    <div className="w-[1024px] h-[768px] relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
+    <div className="w-full relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
       {/* Top label */}
       <div className="text-center mb-3">
         <div style={{
@@ -148,29 +156,109 @@ export function AssessmentQuestion({
       {/* Answer grid */}
       <div className="flex justify-center mt-8">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '456px' }}>
-          {options.map((option, index) => (
-            <button
-              key={index}
-              onClick={onAnswer}
-              style={{
-                width: '220px',
-                height: '100px',
-                background: '#FFFFFF',
-                border: '1.5px solid #E2E8F0',
-                borderRadius: '16px',
-                fontFamily: 'Nunito',
-                fontWeight: 700,
-                fontSize: '28px',
-                color: '#3D4A5C',
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
-              }}
-            >
-              {option}
-            </button>
-          ))}
+          {options.map((option, index) => {
+            const isCorrect = option === correctAnswer;
+            const isSelected = option === selectedAnswer;
+            const isWrongSelection = answered && isSelected && !isCorrect;
+
+            let background = '#FFFFFF';
+            let border = '1.5px solid #E2E8F0';
+            let color = answered ? '#B0BEC5' : '#3D4A5C';
+
+            if (answered) {
+              if (isCorrect) {
+                background = '#E8F8F0';
+                border = '2px solid #52C98A';
+                color = '#52C98A';
+              } else if (isWrongSelection) {
+                background = '#FEF0F0';
+                border = '2px solid #E8524A';
+                color = '#E8524A';
+              }
+            }
+
+            return (
+              <button
+                key={index}
+                onClick={() => !answered && onAnswer(option)}
+                style={{
+                  width: '220px',
+                  height: '100px',
+                  background,
+                  border,
+                  borderRadius: '16px',
+                  fontFamily: 'Nunito',
+                  fontWeight: 700,
+                  fontSize: '28px',
+                  color,
+                  cursor: answered ? 'default' : 'pointer',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {option}
+                {answered && isCorrect && (
+                  <div style={{
+                    position: 'absolute',
+                    right: '14px',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: '#52C98A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Check size={16} color="white" strokeWidth={3} />
+                  </div>
+                )}
+                {isWrongSelection && (
+                  <div style={{
+                    position: 'absolute',
+                    right: '14px',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: '#E8524A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <X size={16} color="white" strokeWidth={3} />
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* Next button (only when answered) */}
+      {answered && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={onNext}
+            style={{
+              width: '200px',
+              height: '60px',
+              background: '#F5A623',
+              color: 'white',
+              fontFamily: 'Nunito',
+              fontWeight: 700,
+              fontSize: '20px',
+              borderRadius: '30px',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(245, 166, 35, 0.4)',
+            }}
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -95,6 +95,20 @@
 }
 
 @theme inline {
+  /* Band Ready design tokens → Tailwind utility classes */
+  --color-band-page:      var(--bg-page);
+  --color-band-cta:       var(--primary-cta);
+  --color-band-active:    var(--active-selected);
+  --color-band-success:   var(--success-completion);
+  --color-band-body:      var(--body-text);
+  --color-band-secondary: var(--text-secondary);
+  --color-band-locked:    var(--locked-disabled);
+  --color-band-error:     var(--incorrect-error);
+  --color-band-border:    var(--border-light);
+  --color-band-hint:      var(--hint-accent);
+  --color-band-card:      var(--white-card);
+  --color-band-staff:     var(--staff-cream);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

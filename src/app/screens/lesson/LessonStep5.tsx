@@ -5,7 +5,7 @@ export function LessonStep5() {
   const navigate = useNavigate();
 
   return (
-    <div className="w-[1024px] h-[768px] relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
+    <div className="min-h-screen flex flex-col relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
       {/* Top bar */}
       <div className="flex justify-between items-center mb-6">
         {/* Back arrow */}
@@ -195,7 +195,7 @@ export function LessonStep5() {
       </div>
 
       {/* START QUIZ button */}
-      <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
+      <div className="mt-auto pt-8 flex justify-center">
         <button
           onClick={() => navigate('/practice/q1')}
           className="flex items-center gap-2"

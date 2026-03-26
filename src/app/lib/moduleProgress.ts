@@ -32,6 +32,11 @@ export function getNextModuleRoute(module: ModuleDefinition, progress: ModulePro
     return `/module/${module.id}`;
   }
 
+  // Resume exactly where the user left off
+  if (progress.lastVisitedRoute?.startsWith(`/module/${module.id}/`)) {
+    return progress.lastVisitedRoute;
+  }
+
   const nextLesson = module.lessons.find((lesson) => !progress.viewedLessonIds.includes(lesson.id));
   if (nextLesson) {
     return `/module/${module.id}/lesson/${nextLesson.id}`;

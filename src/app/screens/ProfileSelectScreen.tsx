@@ -15,7 +15,7 @@ export function ProfileSelectScreen() {
   }, [learners, selectedLearner?.id, selectedProfile]);
 
   return (
-    <div className="w-[1024px] h-[768px] relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
+    <div className="min-h-screen flex flex-col relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
       {/* Back arrow */}
       <button
         onClick={() => navigate('/')}
@@ -42,10 +42,9 @@ export function ProfileSelectScreen() {
         Who's learning today?
       </h1>
 
-      {/* Profile list */}
+      {/* Profile grid */}
       <div
-        className="mx-auto mt-12 flex max-h-[430px] w-[440px] flex-col items-center gap-4 overflow-y-scroll pr-2"
-        style={{ scrollbarWidth: 'auto' }}
+        className="mx-auto mt-12 grid grid-cols-2 gap-4"
       >
         {learnersLoading ? (
           <div style={{ fontWeight: 700, fontSize: '18px', color: '#6B7A8D', marginTop: '48px' }}>
@@ -108,7 +107,7 @@ export function ProfileSelectScreen() {
       </div>
 
       {/* Let's Go Button */}
-      <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
+      <div className="mt-auto pt-8 pb-4 flex justify-center">
         <button
           onClick={() => {
             if (!selectedProfile) {
