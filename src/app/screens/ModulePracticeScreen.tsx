@@ -3,13 +3,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { ModuleVisual } from '../components/ModuleVisual';
 import { playVisualAudio } from '../lib/audio';
-import { getModuleById, getPracticeBackRoute, getSafeModuleRoute } from '../lib/moduleProgress';
+import { getModuleById, getPracticeBackRoute, getSafeModuleRoute, isPracticeComplete } from '../lib/moduleProgress';
 import { useAppState } from '../state/AppState';
 
 export function ModulePracticeScreen() {
   const navigate = useNavigate();
   const { moduleId, questionId } = useParams();
-  const { submitPracticeAnswer, getModuleProgress, startAssessment, markRouteVisited, recordNavigationError } = useAppState();
+  const { submitPracticeAnswer, getModuleProgress, markRouteVisited, recordNavigationError } = useAppState();
   const module = getModuleById(moduleId);
   const progress = module ? getModuleProgress(module.id) : null;
 
@@ -20,6 +20,10 @@ export function ModulePracticeScreen() {
   const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(
     question ? progress?.practiceAnswers[question.id] ?? null : null,
   );
+
+  useEffect(() => {
+    setSelectedAnswerId(question ? progress?.practiceAnswers[question.id] ?? null : null);
+  }, [progress?.practiceAnswers, question]);
 
   if (!module || !question || !progress) {
     if (module) {
@@ -33,6 +37,7 @@ export function ModulePracticeScreen() {
   const isAnswered = Boolean(selectedAnswerId);
   const isCorrect = selectedAnswerId === question.correctOptionId;
   const nextQuestion = module.practiceQuestions[questionIndex + 1];
+  const practiceComplete = isPracticeComplete(module, progress);
   const percent = Math.round(((questionIndex + (isAnswered ? 1 : 0)) / module.practiceQuestions.length) * 100);
 
   useEffect(() => {
@@ -68,8 +73,7 @@ export function ModulePracticeScreen() {
         <div style={{ fontSize: '16px', color: '#6B7A8D' }}>Take your time. No points, just practice.</div>
         <button
           onClick={() => {
-            startAssessment(module.id);
-            navigate(`/module/${module.id}/assessment/${module.assessmentQuestions[0].id}`);
+            navigate(`/module/${module.id}`);
           }}
           style={{
             width: '110px',
@@ -82,7 +86,7 @@ export function ModulePracticeScreen() {
             fontWeight: 700,
           }}
         >
-          Done
+          Hub
         </button>
       </div>
 
@@ -148,30 +152,36 @@ export function ModulePracticeScreen() {
         </div>
       </div>
 
-      <div className="mb-6 flex justify-center">
-        <div
-          style={{
-            width: '460px',
-            minHeight: '56px',
-            background: '#EBF4FF',
-            borderLeft: '4px solid #4A90D9',
-            borderRadius: '0 12px 12px 0',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '12px 16px',
-            gap: '8px',
-          }}
-        >
-          <Lightbulb size={20} color="#4A90D9" />
-          <span style={{ fontSize: '16px', color: '#4A90D9' }}>
-            {isAnswered ? (isCorrect ? question.successMessage : question.hint) : question.hint}
-          </span>
-        </div>
-      </div>
+      {isAnswered ? (
+        <>
+          <div className="mb-6 flex justify-center">
+            <div
+              style={{
+                width: '460px',
+                minHeight: '56px',
+                background: '#EBF4FF',
+                borderLeft: '4px solid #4A90D9',
+                borderRadius: '0 12px 12px 0',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '12px 16px',
+                gap: '8px',
+              }}
+            >
+              <Lightbulb size={20} color="#4A90D9" />
+              <span style={{ fontSize: '16px', color: '#4A90D9' }}>
+                {isCorrect ? question.successMessage : question.hint}
+              </span>
+            </div>
+          </div>
 
-      <div className="mb-4 text-center" style={{ fontSize: '16px', color: isAnswered ? (isCorrect ? '#52C98A' : '#E8524A') : '#6B7A8D' }}>
-        {isAnswered ? (isCorrect ? question.successMessage : `${question.encouragement} The correct answer is ${question.options.find((option) => option.id === question.correctOptionId)?.label}.`) : question.encouragement}
-      </div>
+          <div className="mb-4 text-center" style={{ fontSize: '16px', color: isCorrect ? '#52C98A' : '#E8524A' }}>
+            {isCorrect
+              ? question.successMessage
+              : `${question.encouragement} The correct answer is ${question.options.find((option) => option.id === question.correctOptionId)?.label}.`}
+          </div>
+        </>
+      ) : null}
 
       <div className="mx-auto max-w-[520px]">
         <div style={{ width: '100%', height: '12px', background: '#E2E8F0', borderRadius: '8px', overflow: 'hidden' }}>
@@ -187,8 +197,7 @@ export function ModulePracticeScreen() {
                 navigate(`/module/${module.id}/practice/${nextQuestion.id}`);
                 return;
               }
-              startAssessment(module.id);
-              navigate(`/module/${module.id}/assessment/${module.assessmentQuestions[0].id}`);
+              navigate(`/module/${module.id}`);
             }}
             style={{
               width: '260px',
@@ -202,7 +211,7 @@ export function ModulePracticeScreen() {
               cursor: 'pointer',
             }}
           >
-            {nextQuestion ? 'Next Practice' : 'Start Assessment'}
+            {nextQuestion ? 'Next Practice' : practiceComplete ? 'Back To Module Hub' : 'Return To Practice List'}
           </button>
         </div>
       ) : null}

@@ -122,6 +122,16 @@ export interface AssessmentAttempt {
   passed: boolean;
 }
 
+export interface AssessmentReviewItem {
+  questionId: string;
+  prompt: string;
+  selectedAnswerId?: string;
+  selectedAnswerLabel: string;
+  correctAnswerId: string;
+  correctAnswerLabel: string;
+  isCorrect: boolean;
+}
+
 export interface ModuleProgress {
   viewedLessonIds: string[];
   practiceAnswers: Record<string, string>;
