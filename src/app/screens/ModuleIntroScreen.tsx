@@ -6,6 +6,7 @@ import { playVisualAudio } from '../lib/audio';
 import {
   getLatestFinishedAttempt,
   getModuleById,
+  getNextModuleRoute,
   getPassThresholdLabel,
   getPracticeCardState,
   isPracticeComplete,
@@ -32,6 +33,16 @@ export function ModuleIntroScreen() {
   useEffect(() => {
     markRouteVisited(module.id, `/module/${module.id}`);
   }, [markRouteVisited, module.id]);
+
+  const hasStarted =
+    progress.viewedLessonIds.length > 0 ||
+    progress.completedPracticeIds.length > 0 ||
+    progress.assessmentHistory.length > 0 ||
+    !!progress.currentAssessment;
+  const startRoute = hasStarted
+    ? getNextModuleRoute(module, progress)
+    : `/module/${module.id}/lesson/${module.lessons[0].id}`;
+  const buttonLabel = hasStarted ? 'CONTINUE MODULE' : 'BEGIN MODULE';
 
   return (
     <div className="min-h-screen" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
@@ -240,6 +251,28 @@ export function ModuleIntroScreen() {
             );
           })}
         </div>
+      </div>
+
+      {/* BEGIN / CONTINUE MODULE button */}
+      <div className="mx-auto mt-6 flex justify-center">
+        <button
+          onClick={() => navigate(startRoute)}
+          style={{
+            width: '280px',
+            height: '80px',
+            background: module.accentColor,
+            color: 'white',
+            fontFamily: 'Nunito',
+            fontWeight: 700,
+            fontSize: '24px',
+            borderRadius: '40px',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(245, 166, 35, 0.4)',
+          }}
+        >
+          {buttonLabel}
+        </button>
       </div>
     </div>
   );

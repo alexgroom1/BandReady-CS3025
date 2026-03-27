@@ -1,9 +1,9 @@
-import { ChevronLeft, ChevronRight, Headphones } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Headphones, Home } from 'lucide-react';
 import { useEffect } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { ModuleVisual } from '../components/ModuleVisual';
 import { playVisualAudio } from '../lib/audio';
-import { getLessonBackRoute, getModuleById, getSafeModuleRoute } from '../lib/moduleProgress';
+import { getModuleById, getSafeModuleRoute } from '../lib/moduleProgress';
 import { useAppState } from '../state/AppState';
 
 export function ModuleLessonScreen() {
@@ -35,12 +35,14 @@ export function ModuleLessonScreen() {
 
   return (
     <div className="min-h-screen relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
+      {/* Home button — top-left, always visible */}
       <div className="mb-6 flex justify-between items-center">
         <button
-          onClick={() => navigate(getLessonBackRoute(module, stepIndex))}
-          style={{ width: '48px', height: '48px', border: 'none', background: 'transparent', color: '#4A90D9', cursor: 'pointer' }}
+          onClick={() => navigate(getSafeModuleRoute(module))}
+          style={{ width: '48px', height: '56px', border: 'none', background: 'transparent', color: '#4A90D9', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}
         >
-          <ChevronLeft size={32} />
+          <Home size={24} />
+          <span style={{ fontSize: '11px', fontWeight: 600 }}>Home</span>
         </button>
         <div className="flex items-center gap-2">
           {module.lessons.map((lesson, index) => (
@@ -59,6 +61,17 @@ export function ModuleLessonScreen() {
           Step {stepIndex + 1} of {module.lessons.length}
         </div>
       </div>
+
+      {/* Previous button — vertically centred on left, hidden on step 1 */}
+      {stepIndex > 0 && (
+        <button
+          onClick={() => navigate(`/module/${module.id}/lesson/${module.lessons[stepIndex - 1].id}`)}
+          style={{ position: 'absolute', left: '48px', top: '50%', transform: 'translateY(-50%)', width: '48px', height: '72px', border: 'none', background: 'transparent', color: '#4A90D9', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}
+        >
+          <ChevronLeft size={28} />
+          <span style={{ fontSize: '11px', fontWeight: 600 }}>Previous</span>
+        </button>
+      )}
 
       <h1 className="mb-4 text-center" style={{ fontWeight: 800, fontSize: '38px', color: '#3D4A5C' }}>
         {step.title}

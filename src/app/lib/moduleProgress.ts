@@ -29,8 +29,40 @@ export function getModuleCompletionPercent(module: ModuleDefinition, progress: M
 }
 
 export function getNextModuleRoute(module: ModuleDefinition, progress: ModuleProgress) {
-  void progress;
-  return `/module/${module.id}`;
+  if (
+    progress.viewedLessonIds.length === 0 &&
+    progress.completedPracticeIds.length === 0 &&
+    progress.assessmentHistory.length === 0 &&
+    !progress.currentAssessment
+  ) {
+    return `/module/${module.id}`;
+  }
+
+  // Resume exactly where the user left off
+  if (progress.lastVisitedRoute?.startsWith(`/module/${module.id}/`)) {
+    return progress.lastVisitedRoute;
+  }
+
+  const nextLesson = module.lessons.find((lesson) => !progress.viewedLessonIds.includes(lesson.id));
+  if (nextLesson) {
+    return `/module/${module.id}/lesson/${nextLesson.id}`;
+  }
+
+  const nextPractice = module.practiceQuestions.find(
+    (question) => !progress.completedPracticeIds.includes(question.id),
+  );
+  if (nextPractice) {
+    return `/module/${module.id}/practice/${nextPractice.id}`;
+  }
+
+  const activeAttempt = progress.currentAssessment;
+  const answeredCount = activeAttempt ? Object.keys(activeAttempt.answers).length : 0;
+  if (answeredCount < module.assessmentQuestions.length) {
+    const questionId = module.assessmentQuestions[answeredCount]?.id ?? module.assessmentQuestions[0].id;
+    return `/module/${module.id}/assessment/${questionId}`;
+  }
+
+  return `/module/${module.id}/results`;
 }
 
 export function getPassThresholdLabel(module: ModuleDefinition) {

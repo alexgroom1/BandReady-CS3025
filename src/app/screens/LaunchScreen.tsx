@@ -5,7 +5,7 @@ export function LaunchScreen() {
   const navigate = useNavigate();
 
   return (
-    <div className="w-[1024px] h-[768px] relative flex flex-col items-center justify-center" style={{ background: '#F0F4F8' }}>
+    <div className="relative min-h-screen flex flex-col items-center justify-center" style={{ background: '#F0F4F8' }}>
       <button
         onClick={() => navigate('/teacher-login')}
         style={{

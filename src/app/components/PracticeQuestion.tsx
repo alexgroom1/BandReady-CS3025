@@ -44,7 +44,7 @@ export function PracticeQuestion({
   const noteY = NOTE_POSITIONS[notePosition];
 
   return (
-    <div className="w-[1024px] h-[768px] relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
+    <div className="w-full flex flex-col relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
       {/* Top bar */}
       <div className="flex justify-between items-center mb-5">
         {/* Practice Mode badge */}
@@ -268,7 +268,7 @@ export function PracticeQuestion({
 
       {/* Next button (only when answered) */}
       {answered && (
-        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
+        <div className="mt-4 flex justify-center">
           <button
             onClick={onNextClick}
             style={{

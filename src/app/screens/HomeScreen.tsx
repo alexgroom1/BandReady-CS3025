@@ -1,158 +1,198 @@
 import { useNavigate } from 'react-router';
-import { Award, Book, Drum, LogOut, Music, Trophy, Users } from 'lucide-react';
+import { Award, Book, Drum, Lock, LogOut, Music, Trophy, Users } from 'lucide-react';
 import { MODULES } from '../data/modules';
-import { getModuleCompletionPercent } from '../lib/moduleProgress';
+import { getModuleCompletionPercent, getNextModuleRoute } from '../lib/moduleProgress';
 import { useAppState } from '../state/AppState';
+import { ScreenLayout, BandCard, BandButton, BandBadge } from '../components/ui/band';
+
+const iconMap = {
+  book:   Book,
+  music:  Music,
+  drum:   Drum,
+  users:  Users,
+  trophy: Trophy,
+} as const;
+
+type ModuleStatus = 'complete' | 'active' | 'locked';
+
+function resolveModuleStatuses(
+  moduleIds: string[],
+  getProgress: (id: string) => { completedAt?: number | null },
+): Record<string, ModuleStatus> {
+  const statuses: Record<string, ModuleStatus> = {};
+  let foundActive = false;
+  for (const id of moduleIds) {
+    if (getProgress(id).completedAt) {
+      statuses[id] = 'complete';
+    } else if (!foundActive) {
+      statuses[id] = 'active';
+      foundActive = true;
+    } else {
+      statuses[id] = 'locked';
+    }
+  }
+  return statuses;
+}
+
+const statusLabel: Record<ModuleStatus, string> = {
+  complete: 'COMPLETE',
+  active:   'CURRENT',
+  locked:   'LOCKED',
+};
+
+const statusAccent: Record<ModuleStatus, string> = {
+  complete: '#52C98A',
+  active:   '#4A90D9',
+  locked:   '#B0BEC5',
+};
 
 export function HomeScreen() {
   const navigate = useNavigate();
   const { selectedLearner, getModuleProgress, logout } = useAppState();
 
-  const averageProgress = Math.round(
-    MODULES.reduce((total, module) => total + getModuleCompletionPercent(module, getModuleProgress(module.id)), 0) /
-      MODULES.length,
+  const moduleStatuses = resolveModuleStatuses(
+    MODULES.map(m => m.id),
+    (id) => getModuleProgress(id as Parameters<typeof getModuleProgress>[0]),
   );
 
-  const completedCount = MODULES.filter((module) => Boolean(getModuleProgress(module.id).completedAt)).length;
+  const averageProgress = Math.round(
+    MODULES.reduce(
+      (total, module) => total + getModuleCompletionPercent(module, getModuleProgress(module.id)),
+      0,
+    ) / MODULES.length,
+  );
 
-  const iconMap = {
-    book: Book,
-    music: Music,
-    drum: Drum,
-    users: Users,
-    trophy: Trophy,
-  } as const;
+  const completedCount = MODULES.filter(
+    (module) => Boolean(getModuleProgress(module.id).completedAt),
+  ).length;
 
   return (
-    <div className="min-h-screen" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
+    <ScreenLayout>
       {/* Top Row */}
       <div className="flex justify-between items-start mb-9">
-        {/* Left side */}
         <div>
-          <h1 style={{
-            fontFamily: 'Nunito',
-            fontWeight: 700,
-            fontSize: '36px',
-            color: '#3D4A5C',
-            marginBottom: '8px'
-          }}>
+          <h1 className="text-4xl font-bold text-band-body mb-2">
             Welcome back, {selectedLearner?.name}!
           </h1>
-          <p style={{
-            fontFamily: 'Nunito',
-            fontWeight: 400,
-            fontSize: '18px',
-            color: '#6B7A8D'
-          }}>
+          <p className="text-lg text-band-secondary">
             You're doing great! Keep going to complete your band preparation.
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <button
-            onClick={() => {
-              logout();
-              navigate('/profile-select');
-            }}
-            className="flex items-center justify-center gap-2"
-            style={{
-              width: '180px',
-              height: '56px',
-              background: '#E8524A',
-              borderRadius: '16px',
-              border: 'none',
-              color: 'white',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-          >
-            <LogOut size={18} />
-            Switch Learner
-          </button>
-        </div>
+        <BandButton
+          variant="danger"
+          size="sm"
+          className="rounded-[16px] px-5 h-14 text-base"
+          onClick={() => {
+            logout();
+            navigate('/profile-select');
+          }}
+        >
+          <LogOut size={18} />
+          Switch Learner
+        </BandButton>
       </div>
 
+      {/* Stats Row */}
       <div className="mb-8 grid gap-5 md:grid-cols-3">
-        <div className="rounded-[24px] bg-white p-5 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+        {/* Course Progress */}
+        <BandCard className="p-5">
           <div className="mb-2 flex items-center justify-between">
-            <span style={{ fontWeight: 700, fontSize: '16px', color: '#6B7A8D' }}>Course Progress</span>
-            <span style={{ fontWeight: 800, fontSize: '18px', color: '#4A90D9' }}>{averageProgress}%</span>
+            <span className="text-base font-bold text-band-secondary">Course Progress</span>
+            <span className="text-lg font-[800] text-band-active">{averageProgress}%</span>
           </div>
-          <div style={{ width: '100%', height: '12px', background: '#E2E8F0', borderRadius: '8px', overflow: 'hidden' }}>
-            <div style={{ width: `${averageProgress}%`, height: '100%', background: 'linear-gradient(90deg, #52C98A 0%, #4A90D9 100%)' }} />
+          <div className="w-full h-3 bg-band-border rounded-full overflow-hidden">
+            <div
+              className="h-full"
+              style={{
+                width: `${averageProgress}%`,
+                background: 'linear-gradient(90deg, #52C98A 0%, #4A90D9 100%)',
+              }}
+            />
           </div>
-        </div>
-        <div className="rounded-[24px] bg-white p-5 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+        </BandCard>
+
+        {/* Completed Modules */}
+        <BandCard className="p-5">
           <div className="mb-2 flex items-center gap-2">
             <Award size={18} color="#F5A623" />
-            <span style={{ fontWeight: 700, fontSize: '16px', color: '#6B7A8D' }}>Completed Modules</span>
+            <span className="text-base font-bold text-band-secondary">Completed Modules</span>
           </div>
-          <div style={{ fontWeight: 800, fontSize: '28px', color: '#3D4A5C' }}>{completedCount} / {MODULES.length}</div>
-        </div>
-        <div className="rounded-[24px] bg-white p-5 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
-          <div style={{ fontWeight: 700, fontSize: '16px', color: '#6B7A8D' }}>Testing Ready</div>
-          <div style={{ marginTop: '10px', fontWeight: 600, fontSize: '15px', color: '#3D4A5C' }}>
+          <div className="text-[28px] font-[800] text-band-body">
+            {completedCount} / {MODULES.length}
+          </div>
+        </BandCard>
+
+        {/* Testing Ready */}
+        <BandCard className="p-5">
+          <div className="text-base font-bold text-band-secondary">Testing Ready</div>
+          <div className="mt-2.5 text-[15px] font-semibold text-band-body">
             All five modules are active and support lesson, practice, assessment, and results.
           </div>
-        </div>
+        </BandCard>
       </div>
 
-      <h2 style={{ fontFamily: 'Nunito', fontWeight: 700, fontSize: '22px', color: '#3D4A5C', marginBottom: '20px' }}>
-        Your Learning Path
-      </h2>
+      {/* Learning Path */}
+      <h2 className="text-[22px] font-bold text-band-body mb-5">Your Learning Path</h2>
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
         {MODULES.map((module) => {
-          const progress = getModuleProgress(module.id);
-          const percent = getModuleCompletionPercent(module, progress);
-          const Icon = iconMap[module.icon];
-          const ctaLabel = progress.completedAt ? 'Open Module' : percent > 0 ? 'Continue Module' : 'Start Module';
+          const progress  = getModuleProgress(module.id);
+          const Icon      = iconMap[module.icon];
+          const status    = moduleStatuses[module.id];
+          const percent   = status === 'complete' ? 100 : getModuleCompletionPercent(module, progress);
+          const accent    = statusAccent[status];
+          const ctaLabel  = status === 'complete' ? 'Review Results'
+                          : status === 'active'   ? (percent > 0 ? 'Continue' : 'Start Module')
+                          :                         'Locked';
 
           return (
-            <div
+            <BandCard
               key={module.id}
-              className="flex flex-col rounded-[24px] bg-white p-4 shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
-              style={{ border: `2px solid ${module.accentColor}` }}
+              className="flex flex-col p-4"
+              style={{
+                border: `2px solid ${accent}`,
+                backgroundColor: status === 'locked' ? '#F5F7FA' : undefined,
+                boxShadow: status === 'active' ? '0 0 0 3px rgba(74,144,217,0.18), 0 4px 16px rgba(0,0,0,0.08)' : undefined,
+              }}
             >
               <div className="mb-4 flex items-center justify-between">
+                <BandBadge variant={status}>{statusLabel[status]}</BandBadge>
+                <span className="text-sm font-[800]" style={{ color: accent }}>
+                  {percent}%
+                </span>
+              </div>
+
+              <div className={`mb-4 flex h-16 items-center justify-center${status === 'locked' ? ' opacity-40' : ''}`}>
+                <Icon size={44} color={accent} />
+              </div>
+
+              <div className="text-lg font-[800] text-band-body text-center">{module.title}</div>
+              <div className="mt-2 min-h-[54px] text-sm text-band-secondary text-center">
+                {status === 'locked' ? 'Complete earlier modules to unlock.' : module.summary}
+              </div>
+
+              {/* Progress bar */}
+              <div className="mt-3 w-full h-2.5 bg-band-border rounded-full overflow-hidden">
                 <div
-                  className="rounded-full px-3 py-1 text-[12px] font-[800] text-white"
-                  style={{ background: module.accentColor }}
-                >
-                  {progress.completedAt ? 'COMPLETE' : percent > 0 ? 'ACTIVE' : 'READY'}
-                </div>
-                <div style={{ fontWeight: 800, fontSize: '14px', color: module.accentColor }}>{percent}%</div>
+                  className="h-full rounded-full"
+                  style={{ width: `${percent}%`, backgroundColor: accent }}
+                />
               </div>
-              <div className="mb-4 flex h-16 items-center justify-center">
-                <Icon size={44} color={module.accentColor} />
-              </div>
-              <div style={{ fontWeight: 800, fontSize: '18px', color: '#3D4A5C', textAlign: 'center' }}>{module.title}</div>
-              <div style={{ marginTop: '8px', minHeight: '54px', fontSize: '14px', color: '#6B7A8D', textAlign: 'center' }}>
-                {module.summary}
-              </div>
-              <div style={{ marginTop: '12px', width: '100%', height: '10px', background: '#E2E8F0', borderRadius: '8px', overflow: 'hidden' }}>
-                <div style={{ width: `${percent}%`, height: '100%', background: module.accentColor }} />
-              </div>
-              <button
-                onClick={() => navigate(`/module/${module.id}`)}
-                style={{
-                  width: '100%',
-                  height: '46px',
-                  marginTop: '16px',
-                  borderRadius: '14px',
-                  border: 'none',
-                  background: module.accentColor,
-                  color: 'white',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
+
+              {/* Module CTA */}
+              <BandButton
+                className="w-full mt-4 rounded-[14px]"
+                style={{ backgroundColor: accent }}
+                disabled={status === 'locked'}
+                onClick={status !== 'locked' ? () => navigate(getNextModuleRoute(module, progress)) : undefined}
               >
-                {ctaLabel}
-              </button>
-            </div>
+                {status === 'locked' ? <><Lock size={16} /> Locked</> : ctaLabel}
+              </BandButton>
+            </BandCard>
           );
         })}
       </div>
-    </div>
+    </ScreenLayout>
   );
 }

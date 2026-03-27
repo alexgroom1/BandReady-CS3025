@@ -5,7 +5,7 @@ export function AssessmentScreen() {
   const navigate = useNavigate();
 
   return (
-    <div className="w-[1024px] h-[768px] relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
+    <div className="min-h-screen relative" style={{ background: '#F0F4F8', padding: '40px 48px' }}>
       {/* Top label */}
       <div className="text-center mb-3">
         <div style={{
